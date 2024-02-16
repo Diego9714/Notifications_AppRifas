@@ -257,15 +257,15 @@ const deleteNote = async ({ data }) => {
 
     if (verify.length > 0) {
       let updateSql = `UPDATE notifications SET activation_status = ? WHERE id_notification = ?;`;
-      const [note] = await connection.execute(updateSql, [activation, id_notification]);
+      const [note] = await connection.execute(updateSql, [activation_status, id_notification]);
 
-      if (note.affectedRows > 0 && activation == 1) {
+      if (note.affectedRows > 0 && activation_status == 1) {
         msg = {
           status: true,
           message: "Note Activated succesfully",
           code: 200
         };
-      } else if (note.affectedRows > 0 && activation == 0) {
+      } else if (note.affectedRows > 0 && activation_status == 0) {
         msg = {
           status: true,
           message: "Note Disabled succesfully",

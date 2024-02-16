@@ -66,7 +66,7 @@ controller.editNote = async (req, res) => {
 // ----- Delete Note -----
 controller.deleteNote = async (req, res) => {
   try {
-    const data = {id_notification , activation } = req.body
+    const data = {id_notification , activation_status } = req.params
 
     infoNote = await Notes.deleteNote(data)
     res.status(infoNote.code).json(infoNote)
