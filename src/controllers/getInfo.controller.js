@@ -16,7 +16,6 @@ controller.getNotificationsSeller = async (req, res) => {
   try {
     const { id_seller } = req.params
     const user  = await Notes.getNotesSeller(id_seller)
-    console.log(user)
     res.status(user.code).json(user)
   } catch (err) {
     res.status(500).json({ error: "Error al realizar la consulta" })

@@ -5,39 +5,18 @@ const controller = {}
 // ----- Save Notification -----
 controller.regNote = async (req, res) => {
   try {
-    const { notes } = req.body
+    const note = {id_boss, title_note, content_note} = req.body
 
-    const filterNotes = Object.keys(notes)
+    const filterNotes = Object.keys(note)
 
     if (filterNotes.length > 0) {
-      const verify = await Notes.verifyNote(notes)
+      const verify = await Notes.verifyNote(note)
 
-      console.log(verify)
-
-      const regNotes = verify.info.regNote
-      const noteExists = verify.info.noteExists
-
-      let registeredNotes = []
-      let existingNotes = []
-
-      if (regNotes.length > 0) {
-        const infoNote = await Notes.regNote(regNotes)
-
-        console.log(infoNote)
-
-        registeredNotes = infoNote.completed.map(note => note.note)
-        existingNotes = noteExists.map(note => note.title_note)
-        
-        res.status(infoNote.code).json({
-          message: "Registration process completed",
-          status: true,
-          code: infoNote.code,
-          registeredNotes: registeredNotes,
-          existingNotes: existingNotes,
-          notRegisteredNotes: infoNote.notCompleted
-        })
+      if (verify.code == 200) {
+        const infoNote = await Notes.regNote(note)
+        res.status(infoNote.code).json(infoNote)
       } else {
-        res.status(500).json({ message: "All notes are already registered", status: false, code: 500 })
+        res.status(500).json({ message: "Note already registered", status: false, code: 500 })
       }
 
     } else {
@@ -53,9 +32,9 @@ controller.regNote = async (req, res) => {
 // ----- Edit Note -----
 controller.editNote = async (req, res) => {
   try {
-    const { notes } = req.body
+    const note = {id_notification, title_note, content_note} = req.body
 
-    infoNote = await Notes.editNote(notes)
+    infoNote = await Notes.editNote(note)
     res.status(infoNote.code).json(infoNote)
   
   } catch (error) {

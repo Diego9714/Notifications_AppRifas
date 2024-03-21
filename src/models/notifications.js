@@ -1,33 +1,24 @@
 const pool = require('../utils/mysql.connect.js') 
 
-const bcrypt = require("bcrypt")
-
 // ----- Verify Note -----
-const verifyNote = async (notes) => {
+const verifyNote = async ({note}) => {
   try {
-    const connection = await pool.getConnection()
-
-    const regNote = []
-    const noteExists = []
-
-    for (const info of notes) {
-      const sql = `SELECT id_notification FROM notifications WHERE title_note = ?;`
-      const [rows] = await connection.execute(sql, [info.title_note])
-
-      if (rows.length > 0) {
-        noteExists.push(info)
-      } else {
-        regNote.push(info)
-      }
+    let msg = {
+      status: false,
+      message: "Notification already exist",
+      code: 500
     }
 
-    const msg = {
-      status: true,
-      message: regNote.length > 0 ? "New notes found" : "All notes already exist",
-      code: regNote.length > 0 ? 200 : 404,
-      info: {
-        regNote,
-        noteExists
+    const connection = await pool.getConnection()
+
+    const sql = `SELECT id_notification FROM notifications WHERE title_note = ?;`
+    const [rows] = await connection.execute(sql, [title_note])
+
+    if (rows.length == []) {
+      msg = {
+        status: true,
+        message: "Notification for registration",
+        code: 200
       }
     }
 
@@ -46,46 +37,32 @@ const verifyNote = async (notes) => {
 }
 
 // ----- Save Note -----
-const regNote = async (regNotes) => {
+const regNote = async ({note}) => {
   try {
-    const Notescompleted = []
-    const NotesnotCompleted = []
+    let msg = {
+      status: false,
+      message: "Notification not registered",
+      code: 500
+    }
 
-    for (const info of regNotes) {
-      const { id_boss , title_note , content_note } = info
+    const connection = await pool.getConnection()
 
-      const connection = await pool.getConnection()
+    const fechaActual = new Date()
+    const date_created = fechaActual.toISOString().split('T')[0]
 
-      const fechaActual = new Date()
-      const date_created = fechaActual.toISOString().split('T')[0]
+    let sql = `INSERT INTO notifications ( id_boss , title_note , content_note , date_created , activation_status) VALUES (?, ?, ?, ?, ?);`
+    const [result] = await connection.execute(sql, [id_boss ,title_note , content_note , date_created, 1])
 
-      let sql = `INSERT INTO notifications ( id_boss , title_note , content_note , date_created , activation_status) VALUES (?, ?, ?, ?, ?);`
-      const [result] = await connection.execute(sql, [id_boss ,title_note , content_note , date_created, 1])
-
-      if (result.affectedRows > 0) {
-        Notescompleted.push({
-          status: true,
-          message: "Note registered successfully",
-          note: title_note 
-        })
-      } else {
-        NotesnotCompleted.push({
-          status: false,
-          message: "Note not registered successfully",
-          note: title_note
-        })
+    if (result.affectedRows > 0) {
+      msg = {
+        status: true,
+        message: "Notification registered succesfully",
+        code: 200
       }
-
-      connection.release()
     }
 
-    const msg = {
-      status: true,
-      message: "Notes registration process completed",
-      code: 200,
-      completed: Notescompleted,
-      notCompleted: NotesnotCompleted
-    }
+    connection.release()
+
 
     return msg
 
@@ -184,53 +161,38 @@ const getNotesSeller = async (id_seller) => {
 }
 
 // ----- Edit Note -----
-const editNote = async (notes) => {
+const editNote = async ({note}) => {
   try {
-    const Notescompleted = []
-    const NotesnotCompleted = []
+    let msg = {
+      status: false,
+      message: "Notification not found",
+      code: 404
+    }
 
-    for (const info of notes) {
-      const { id_notification , title_note , content_note } = info
+    const connection = await pool.getConnection()
 
-      const connection = await pool.getConnection()
+    const [verify] = await connection.execute(`SELECT id_notification FROM notifications WHERE id_notification = ?;`, [id_notification])
 
-      const [verify] = await connection.execute(`SELECT id_notification FROM notifications WHERE id_notification = ?;`, [id_notification])
+    if (verify.length > 0) {
+      const [result] = await connection.execute(`UPDATE notifications SET title_note = ?, content_note = ? WHERE id_notification = ?;`, [title_note , content_note, id_notification])
 
-      if (verify.length > 0) {
-        const [result] = await connection.execute(`UPDATE notifications SET title_note = ?, content_note = ? WHERE id_notification = ?;`, [title_note , content_note, id_notification])
-
-        if (result.affectedRows > 0) {
-          Notescompleted.push({
-            status: true,
-            message: "Note edited successfully",
-            note: title_note
-          })
-        } else {
-          NotesnotCompleted.push({
-            status: false,
-            message: "Note not edited successfully",
-            note: title_note
-          })
+      if (result.affectedRows > 0) {
+        msg = {
+          status: true,
+          message: "Notification edited succesfully",
+          code: 404
         }
       } else {
-        NotesnotCompleted.push({
+        msg = {
           status: false,
-          message: "Note not found",
-          note: title_note
-        })
+          message: "Notification not edited",
+          code: 500
+        }
       }
-
-      connection.release()
     }
 
-    const msg = {
-      status: true,
-      message: "Edit process completed",
-      code: 200,
-      completed: Notescompleted,
-      notCompleted: NotesnotCompleted
-    }
-
+    connection.release()
+  
     return msg
 
   } catch (err) {
